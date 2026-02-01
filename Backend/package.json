@@ -1,0 +1,29 @@
+{
+  "name": "nodejs",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon user.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.966.0",
+    "@aws-sdk/s3-request-presigner": "^3.978.0",
+    "bcrypt": "^6.0.0",
+    "bcryptjs": "^3.0.3",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "express-status-monitor": "^1.3.4",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.0.0",
+    "multer": "^2.0.2",
+    "nodemon": "^3.1.11"
+  }
+}

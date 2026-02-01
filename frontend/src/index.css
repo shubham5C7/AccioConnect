@@ -1,0 +1,111 @@
+@import "tailwindcss";
+
+/* Froala emoji styles */
+.fr-emoticon {
+  display: inline-block !important;
+  width: 1.2em !important;
+  height: 1.2em !important;
+  background-size: contain !important;
+  background-repeat: no-repeat !important;
+  background-position: center !important;
+  vertical-align: middle !important;
+  font-style: normal !important;
+  margin: 0 2px !important;
+}
+.fr-deletable {
+  background-color: transparent !important;
+}
+/* Additional Froala content styles */
+.froala-content p {
+  margin: 0.5em 0;
+}
+.froala-content p:first-child {
+  margin-top: 0;
+}
+.froala-content p:last-child {
+  margin-bottom: 0;
+}
+/*  DARK MODE — FULL TRANSPARENT FROALA     */
+.dark .fr-box,
+.dark .fr-box.fr-basic,
+.dark .fr-wrapper,
+.dark .fr-element,
+.dark .fr-toolbar,
+.dark .fr-second-toolbar,
+.dark .fr-counter {
+  background: transparent !important;
+}
+/* White text */
+.dark .fr-box.fr-basic .fr-element {
+  color: #ffffff !important;
+}
+/* Placeholder */
+.dark .fr-placeholder {
+  color: #9ca3af !important;
+}
+/* Toolbar icons */
+.dark .fr-toolbar .fr-btn,
+.dark .fr-toolbar .fr-command.fr-btn {
+  color: #ffffff !important;
+}
+.dark .fr-toolbar svg path {
+  fill: #ffffff !important;
+}
+/* Toolbar hover */
+.dark .fr-toolbar .fr-btn:hover {
+  background: rgba(255,255,255,0.1) !important;
+}
+.dark .fr-toolbar .fr-btn.fr-active {
+  background: rgba(255,255,255,0.2) !important;
+}
+/* Borders soft */
+.dark .fr-box.fr-basic {
+  border: 1px solid rgba(255,255,255,0.15) !important;
+  border-radius: 12px !important;
+}
+/* Character counter */
+.dark .fr-counter {
+  color: #9ca3af !important;
+  border-top: 1px solid rgba(255,255,255,0.1) !important;
+}
+/* Dropdown menu */
+.dark .fr-dropdown-menu {
+  background: rgba(20,20,20,0.95) !important;
+  border: 1px solid rgba(255,255,255,0.15) !important;
+}
+.dark .fr-dropdown-menu a {
+  color: white !important;
+}
+/* Remove Froala branding */
+.dark .fr-box .fr-counter::before {
+  display: none !important;
+}
+/* CONTENT TRANSPARENT FIX  */
+.dark .fr-emoticon,
+.dark .fr-emoticon.fr-deletable,
+.dark span.fr-emoticon {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  border-radius: 4px !important;
+  padding: 1px !important;
+  filter: none !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+.dark .fr-deletable:not(.fr-emoticon),
+.dark .fr-element span:not(.fr-emoticon),
+.dark .fr-element font,
+.dark .fr-element mark {
+  background: transparent !important;
+}
+/* Spacing */
+.dark .fr-box.fr-basic .fr-element p {
+  margin: 0.5em 0;
+}
+
+* {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+*::-webkit-scrollbar {
+  display: none; 
+}
