@@ -6,7 +6,7 @@ const RecentlyPlaced = () => {
 
   return (
     <div
-      className={`fixed right-5 top-20 w-72 h-108 p-4 rounded-lg shadow-[0_12px_40px_rgba(0,0,0,0.55)]  ${isDark ? " text-white " : "bg-white text-black"}`}
+      className={`  hidden xl:block fixed right-5 top-20 w-72 h-[420px] p-4 rounded-xl shadow-md  border ${isDark ? " text-white border-gray-800" : "bg-white text-black border-gray-200"}`}
       style={isDark ? Colors.RightPannelBG : {}}
     >
       Recently Placed

@@ -81,6 +81,7 @@ const SCHEMAS = {
         name: "profilePicture",
         label: "Profile Picture ",
         type: "file",
+         uiOnly: false
       },
     ],
     toggleText: "Already have an account?",
@@ -103,16 +104,17 @@ const getInitialState = (schema) => {
 };
 
 const handleFeildChange = (e, field, formData, setFormData, setFileName) => {
-  const { name, value, files, checked } = e.target;
-
-  if (field.type === "file") {
-    const file = files[0];
-    setFormData({ ...formData, [name]: file });
-    setFileName(file ? file.name : "");
-  } else if (field.type === "checkbox") {
-    setFormData({ ...formData, [name]: checked });
+  if (field.type === 'file') {
+    const file = e.target.files?.[0];
+    if (file) {
+      console.log('File selected:', file.name, file.type, file.size);
+      setFormData({ ...formData, [field.name]: file });
+      setFileName(file.name);
+    }
+  } else if (field.type === 'checkbox') {
+    setFormData({ ...formData, [field.name]: e.target.checked });
   } else {
-    setFormData({ ...formData, [name]: value });
+    setFormData({ ...formData, [field.name]: e.target.value });
   }
 };
 

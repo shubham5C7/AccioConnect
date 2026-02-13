@@ -5,52 +5,64 @@ import { useNavigate } from "react-router-dom";
 import { Toaster, toast } from "sonner";
 import {IMAGES,getToastOptions,SCHEMAS} from '../constants'
 import { useState } from "react";
+import uploadToS3 from "../utils/uploadToS3";
 
 const SignUp = () => {
   const isDark = useSelector((state) => state.theme.isDark);
   const navigate = useNavigate();
   const [imgLoading,setImgLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false); // Avoide double subitting(double click protection)
 
-  const handleSignUp = async (formData) => {
-    console.log("SIGN UP DATA", formData);
-    try {
-      const response = await axios.post(
-        "http://localhost:8000/auth/signUp",
-        data,{ withCredentials: true });
-    
-      console.log("RESPONSE", response);
-      
-      // if SignUp is Successful
-      if (response.data.success) {
-        const user = response.data.data.data;
-        if (user.firstName && user.lastName) {
-          const name = `${user.firstName} ${user.lastName}`;
-          localStorage.setItem("name", name);
-          console.log(name);
-        }
-        if (user.profilePicture) {
-          localStorage.setItem("profilePicture", user.profilePicture);
-          console.log(user.profilePicture);
-        }
-        // Show success toast
-        toast.success("Account created successfully! Redirecting to sign in...");
-        // Navigate after brief delay
-        setTimeout(() => navigate("/signIn"), 1000);
+const handleSignUp = async (formData) => {
 
-      } else {
-        // Show error toast
-        toast.error(response.data.message || "Signup failed");
-      }
-    } catch (err) {
-      console.error("SIGNUP ERROR", err);
-      // Show error toast for network/server errors
-      toast.error(
-        err.response?.data?.message || 
-        err.message || 
-        "An error occurred during signup"
-      );
+  if (isSubmitting) return;
+  setIsSubmitting(true);
+
+  try {
+
+    const profilePictureFile = formData.get("profilePicture");
+
+    // Convert early
+    const dataToSend = Object.fromEntries(formData.entries());
+    delete dataToSend.profilePicture;
+
+    // Upload if file exists
+    if (profilePictureFile instanceof File) {
+
+      toast.loading("Uploading profile picture...", { id: "upload" });
+
+      const uploadedImage = await uploadToS3(profilePictureFile);
+
+      toast.success("Profile picture uploaded!", { id: "upload" });
+      dataToSend.profilePicture = uploadedImage.permanentUrl;
+      dataToSend.profilePictureKey = uploadedImage.key;
     }
-  };
+
+    // Send signup request
+    const response = await axios.post(
+       "http://localhost:3000/auth/signUp",
+      dataToSend,
+      { withCredentials: true }
+    );
+
+    if (response.data.success) {
+      toast.success("Account created! Redirecting...");
+      setTimeout(() => navigate("/signIn"), 1000);
+    }
+
+  } catch (err) {
+
+    toast.error(
+      err.response?.data?.message ||
+      err.message ||
+      "Signup failed"
+    );
+
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
   return (
     <div className={`min-h-screen mt-10 flex items-center justify-center px-4 relative  ${isDark ? "bg-gray-800 text-white": "bg-white text-gray-900" }`}>
       {/* Add Toaster component */}
@@ -74,10 +86,10 @@ const SignUp = () => {
         <DynamicForm
           schema={SCHEMAS.SIGN_UP}
           onSubmit={handleSignUp}
+          isSubmitting={isSubmitting}
         />
       </div>
     </div>
   );
 };
-
 export default SignUp;

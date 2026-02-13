@@ -1,11 +1,10 @@
 import React, { useState } from "react";
 import { useSelector } from "react-redux";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { getInitialState, handleFeildChange } from "../constants";
 
-const DynamicForm = ({ schema, onSubmit }) => {
+const DynamicForm = ({ schema, onSubmit,isSubmitting=false }) => {
   const navigate = useNavigate();
-  const location = useLocation();
   const isDark = useSelector((state) => state.theme.isDark);
 
   const [formData, setFormData] = useState(() => getInitialState(schema));
@@ -25,38 +24,52 @@ const DynamicForm = ({ schema, onSubmit }) => {
   };
 
   // Submit
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // Required validation
-    for (let field of schema.fields) {
-      if (field.required && shouldShowField(field) && !formData[field.name]) {
-        setError(`${field.label} is required`);
-        return;
-      }
-    }
-    if (
-      formData.password &&
-      formData.confirmPassword &&
-      formData.password !== formData.confirmPassword
-    ) {
-      setError("Passwords do not match");
+const handleSubmit = async(e) => {
+  e.preventDefault(); 
+  // Required validation
+  for (let field of schema.fields) {
+    if (field.required && shouldShowField(field) && !formData[field.name]) {
+      setError(`${field.label} is required`);
       return;
     }
-    setError("");
-    const formDataToSend = new FormData();
-    schema.fields.forEach((field) => {
-      if (!field.uiOnly && shouldShowField(field)) {
-        formDataToSend.append(field.name, formData[field.name]);
+  }
+  // Password match validation
+  if (
+    formData.password &&
+    formData.confirmPassword &&
+    formData.password !== formData.confirmPassword
+  ) {
+    setError("Passwords do not match");
+    return;
+  }
+  setError("");
+  // Build FormData
+  const formDataToSend = new FormData();
+  
+  schema.fields.forEach((field) => {
+    if (!field.uiOnly && shouldShowField(field)) {
+      const value = formData[field.name];
+      // Only append if value exists
+      if (value !== undefined && value !== null && value !== "") {
+        console.log(`Appending ${field.name}:`, value);
+        formDataToSend.append(field.name, value);
       }
-    });
-    onSubmit(formDataToSend);
-  };
+    }
+  });
+  // Debug: Log all FormData entries
+  console.log("FormData to send:");
+  for (let [key, value] of formDataToSend.entries()) {
+    console.log(`  ${key}:`, value);
+  }
+  
+  await onSubmit(formDataToSend);
+};
 
   return (
     <div className="flex justify-center w-full">
       <form
         onSubmit={handleSubmit}
-        className={`w-full max-w-xl h-[90vh] rounded-2xl p-4 flex flex-col ${isDark ? "bg-gray-800 text-white ring-1 ring-gray-700 shadow-[0_20px_50px_rgba(0,0,0,0.7)]" : "bg-white text-gray-900 ring-1 ring-gray-200 shadow-[0_20px_40px_rgba(0,0,0,0.15)]"}`}
+        className={`w-full max-w-xl h-[90vh] rounded-2xl p-6 flex flex-col ${isDark ? "bg-gray-800 text-white ring-1 ring-gray-700 shadow-[0_20px_50px_rgba(0,0,0,0.7)]" : "bg-white text-gray-900 ring-1 ring-gray-200 shadow-[0_20px_40px_rgba(0,0,0,0.15)]"}`}
       >
         {/* Heading */}
         <h2 className="text-2xl font-bold text-center mb-4 flex-shrink-0">
@@ -183,8 +196,19 @@ const DynamicForm = ({ schema, onSubmit }) => {
           {/* Submit button */}
           <button
             type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-medium transition mb-3">
-            Submit
+            disabled={isSubmitting}  // Disable during submission
+            className={`w-full  py-2 rounded-lg font-medium transition mb-3 ${isSubmitting ? "bg-gray-400 cursor-not-allowed text-gray-600" : "bg-blue-600 hover:bg-blue-700 text-white"}`}>
+            {isSubmitting ? (
+                          <span className="flex items-center justify-center gap-2">
+              <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Submitting...
+            </span>
+            ): (
+            'Submit'
+          )}
           </button>
 
           {/* Toggle route */}

@@ -27,13 +27,15 @@ const SideBar = () => {
 
       {/* Sidebar */}
       <div
-        className={`fixed   h-full w-60  rounded-2xl z-40 ${isDark ? " text-gray-200" : " text-gray-800"} md:relative md:block ${isOpen ? "block" : "hidden md:block"}`}
+        className={`fixed   h-full w-55  rounded-2xl z-40 ${isDark ? " text-gray-200" : " text-gray-800"} md:relative md:block ${isOpen ? "block" : "hidden md:block"}`}
       >
         <div className="space-y-2 mt-9 ">
           {/*Create Post */}
           <div
             className={`${Colors.SideBarBaseCSs} ${isDark ? Colors.SideBarLightMode : Colors.SideBarDarkMode}`}
-            onClick={() => setIsModalOpen(true)}
+            onClick={() =>{
+               setIsModalOpen(true);  
+                setIsOpen(false);}}
           >
             <AiOutlinePlus size={26} />
             Create Post
@@ -56,17 +58,16 @@ const SideBar = () => {
       </div>
 
       {/* Overlay */}
-      {isOpen && (
-        <div
-          className={`fixed inset-0 z-20 md:hidden ${isDark ? Colors.SideBarLightMode : Colors.SideBarDarkMode}`}
-        >
-          onClick{() => setIsOpen(false)}
-        </div>
-      )}
+ {isOpen && (
+  <div
+    className={`fixed inset-0 z-20 md:hidden ${isDark ? Colors.SideBarLightMode : Colors.SideBarDarkMode}`}
+    onClick={() => setIsOpen(false)}  
+  />
+)}
 
       {/*Modal*/}
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
-        <CreatePost />
+          <CreatePost onClose={() => setIsModalOpen(false)} />
       </Modal>
     </>
   );

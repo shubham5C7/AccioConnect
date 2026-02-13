@@ -4,6 +4,7 @@ import { Link, useLocation } from "react-router-dom";
 import { toggleTheme } from "../features/themeSlice";
 import SearchBar from "./SearchBar";
 import {IMAGES,Colors} from '../constants'
+import {getProfilePicture} from '../utils/storage'
 
 const NavBar = () => {
   const isDark = useSelector((state) => state.theme.isDark);
@@ -11,7 +12,7 @@ const NavBar = () => {
   const location = useLocation();
   const isAuth = location.pathname === "/signUp" || location.pathname === "/signIn";
 
- const profilePic = localStorage.getItem("profilePicture");
+    const profilePic = getProfilePicture();
 
   return (
     <nav
@@ -51,22 +52,18 @@ const NavBar = () => {
         {isDark ? <PiSun size={23} /> : <PiMoon size={23} />}
       </button>
 
-    {/* {!isAuth && (
-      <Link to="/profile" className="w-10 h-10 bg-white  rounded-full">
+  {!isAuth && (
+      <Link to="/profile" className="w-10 h-10 bg-white  rounded-full ">
         <img 
-        src={
-            profilePic ||
-            "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Default_pfp.svg/1024px-Default_pfp.svg.png"
-          }
+        src={profilePic}
         alt="Profile"
         loading="lazy"
         decoding="async"
           onError={(e)=>(e.currentTarget.src = "/image-fallback.png")}
          className="w-10 h-10 rounded-full object-cover"
         />
-
       </Link>
-    )} */}
+    )} 
 
     </nav>
   );

@@ -1,7 +1,7 @@
   import axios from 'axios'
   import {createAsyncThunk, createSlice} from '@reduxjs/toolkit'
 
-  const API ="http://localhost:8000/posts"; 
+  const API ="http://localhost:3000/posts"; 
 
   // Fetch a API for getting all posts
   export const fetchAllPosts = createAsyncThunk("posts/allPosts",
@@ -30,9 +30,11 @@
         isCommentDisable: !postData.commentsEnabled,
         isLikeDisable: !postData.likesEnabled,
         };
+        console.log("Payload being sent to backend:", payload); // ADD THIS
         const response = await axios.post(`${API}/createpost`,payload,{withCredentials:true});
+          console.log(" Backend response:", response.data); // ADD THIS
          // Handle different response structures
-      return response.data.data.data || response.data.data || response.data;
+      return response.data.data;  ;
        }catch (err) {
       return rejectWithValue(err.response?.data?.message || "Failed to create post");
     }
@@ -41,13 +43,19 @@
 
   // Fetch Api for the toggle the LIkes and UnLikes
   export const toggleLikes = createAsyncThunk("posts/toggleLikes",
-    async({postId},{rejectWithValue})=>{
+    async({postId, userId, userName, profilePicture},{rejectWithValue})=>{
       try{
-        const response = await axios.patch(`${API}/likes/${postId}`,{},{
+        const response = await axios.patch(`${API}/likes/${postId}`,{
+          userId,
+          userName,
+           profilePicture
+        },{
         withCredentials:true
         })
+              console.log("Like response received:", response.data);
       return response.data.data;
       }catch(err){
+              console.error("Like API error:", err.response?.data); 
         return rejectWithValue(err.response?.data?.message ||  "Failed to toggle like");
       }
     }
@@ -90,7 +98,7 @@ export const profilePost = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await axios.get(
-        "http://localhost:8000/user/profile",
+        "http://localhost:3000/user/profile",
         { withCredentials: true }
       );
 
@@ -113,7 +121,7 @@ export const profilePost = createAsyncThunk(
     error: null,
     createLoading: false,
     createError: null,
-    likesLoading: false,
+     likesLoading: {},
     commentsLoading: false,
   },
 
@@ -125,6 +133,25 @@ export const profilePost = createAsyncThunk(
     clearCreateError: (state) => {
       state.createError = null;
     },
+    optimisticLikeToggle:(state,action) => {
+      const {postId,userId} = action.payload;
+
+      const post = state.posts.find((p)=>p._id === postId);
+      if(!post) return;
+
+        if (!post.likes) {
+        post.likes = [];
+         }
+
+
+      const alreadyLiked = post.likes?.some((like) => like.userId === userId);
+
+      if(alreadyLiked){
+        post.likes = post.likes.filter((like) => like.userId !== userId);
+      }else{
+        post.likes.push({userId});
+      }
+    }
   },
 
   extraReducers: (builder) => {
@@ -136,7 +163,7 @@ export const profilePost = createAsyncThunk(
       })
       .addCase(fetchAllPosts.fulfilled, (state, action) => {
         state.loading = false;
-        state.posts = action.payload;
+         state.posts = action.payload || [];
       })
       .addCase(fetchAllPosts.rejected, (state, action) => {
         state.loading = false;
@@ -158,19 +185,24 @@ export const profilePost = createAsyncThunk(
       })
 
       /*  TOGGLE LIKE  */
-      .addCase(toggleLikes.pending, (state) => {
-        state.likesLoading = true;
+      .addCase(toggleLikes.pending, (state, action) => {
+        const postId = action.meta.arg.postId;
+        state.likesLoading[postId] = true;
       })
-      .addCase(toggleLikes.fulfilled, (state, action) => {
-        state.likesLoading = false;
-        state.posts = state.posts.map((post) =>
-          post._id === action.payload._id ? action.payload : post
-        );
-      })
-      .addCase(toggleLikes.rejected, (state, action) => {
-        state.likesLoading = false;
-        state.error = action.payload;
-      })
+    .addCase(toggleLikes.fulfilled, (state, action) => {
+      const postId = action.payload._id;
+      state.likesLoading[postId] = false;
+      const index = state.posts.findIndex((p) => p._id === postId);
+
+      if (index !== -1) {
+        state.posts[index] = action.payload;
+      }
+    })
+    .addCase(toggleLikes.rejected, (state, action) => {
+      const postId = action.meta.arg.postId;
+      state.likesLoading[postId] = false;
+      state.error = action.payload;
+    })
 
       /*  ADD COMMENT  */
       .addCase(addComments.pending, (state) => {
@@ -218,5 +250,5 @@ export const profilePost = createAsyncThunk(
   },
 });
 
-export const { addPosts, clearCreateError } = postsSlice.actions;
+export const { addPosts, clearCreateError, optimisticLikeToggle } = postsSlice.actions;
 export default postsSlice.reducer;

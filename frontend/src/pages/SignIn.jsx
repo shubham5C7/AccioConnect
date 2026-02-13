@@ -6,6 +6,7 @@ import { Toaster, toast } from 'sonner'
 import { setUser } from '../features/userSlice'; 
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import {IMAGES,getToastOptions} from '../constants'
+import {saveUserToStorage} from '../utils/storage'
 
 const SignIn = () => {
   const [showPasswod,setShowPassword]=useState(false);
@@ -31,14 +32,19 @@ const SignIn = () => {
     setIsLoading(true);
     try {
       const response = await axios.post(
-        "http://localhost:8000/auth/signIn",
+        "http://localhost:3000/auth/signIn",
         formData, {withCredentials: true, }
       );
 
       if (response.data?.success) {
         // Save user to Redux
-        const userData = response.data?.data?.data || response.data?.data || response.data;
+       const userData = response.data.data.user; 
+        console.log("User Data received:", userData);
         dispatch(setUser(userData));
+        console.log("User Data received:", userData);
+
+        // Sav ethe data in localStorage
+        saveUserToStorage(userData)
         // Show success toast
         toast.success('Welcome back! Signed in successfully!');
         // Navigate after a brief moment

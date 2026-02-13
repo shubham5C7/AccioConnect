@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from "react-redux";
 import SideBar from "../Components/SideBar";
 import RightPanel from "../Components/RecentlyPlaced";
 import PostCard from "../Components/PostCard";
-import { fetchAllPosts } from "../features/postsSlice";
+import { fetchAllPosts , profilePost} from "../features/postsSlice";
 import {Colors} from '../constants'
 
 const Home = () => {
@@ -17,6 +17,7 @@ const Home = () => {
   } = useSelector((state) => state.posts || {});
   // Fetch API for all the posts
   useEffect(() => {
+    dispatch(profilePost());
     dispatch(fetchAllPosts());
   }, [dispatch]);
 
@@ -25,12 +26,12 @@ const Home = () => {
       className={`flex h-screen overflow-hidden p-8  ${isDark ? "text-white" : "bg-gray-100 text-gray-900"}`}
       style={isDark ? { background: Colors.HomeBG } : {}}>
       {/* Sidebar */}
-      <div className="w-60 shrink-0">
+      <div className="w-40 shrink-0">
         <SideBar />
       </div>
 
       {/* Center feed */}
-      <div className="w-[660px] overflow-y-auto  px-4 ml-12 pt-8  [&::-webkit-scrollbar]:hidden [scrollbar-width:none] [-ms-overflow-style:none]">
+      <div className="w-[800px] overflow-y-auto ml-12 pt-8  [&::-webkit-scrollbar]:hidden [scrollbar-width:none] [-ms-overflow-style:none]">
         {loading && (
           <div className="text-center py-8">
             <p className="text-gray-400">Loading posts...</p>
@@ -46,7 +47,7 @@ const Home = () => {
         {!loading && !error && posts.length > 0 && (
           <>
             {posts.map((post) => (
-              <PostCard key={post._id} post={post} />
+              <PostCard key={post._id || Math.random()} post={post} />
             ))}
           </>
         )}
