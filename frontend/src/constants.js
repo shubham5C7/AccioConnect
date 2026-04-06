@@ -27,7 +27,7 @@ const SCHEMAS = {
         name: "batch",
         label: "Batch ",
         type: "select",
-        options: ["OBH_1", "OBH_2", "OBH_3"],
+        options: ["OBH_1", "OBH_2", "OBH_3","OBH_4","OBH_5","OBH_6","OBH_7","OBH_8","OBH_9","OBH_10"],
         required: true,
       },
       {
@@ -159,11 +159,11 @@ const DEFAULT_AVATAR =
 const Colors = {
   HomeBG: "radial-gradient(ellipse at bottom right, #1f293b 0%, #0b0f14 70%)",
   SideBarBaseCSs:
-    "flex  items-center gap-2 p-3 rounded-xl cursor-pointer transition-all duration-300",
+    "flex  items-center gap-2 p-3 rounded-xl cursor-pointer transition-all duration-300 border-1 shadow-sm",
   SideBarLightMode:
-    "hover:ring hover:ring-gray-300 hover:shadow-[0_0_12px_rgba(156,163,175,0.35)]",
+    "  border-gray-700 hover:ring hover:ring-gray-300 hover:shadow-[0_0_12px_rgba(156,163,175,0.35)]",
   SideBarDarkMode:
-    "hover:ring-2 hover:ring-gray-400 hover:shadow-[0_0_50px_rgba(168,85,247,0.3),0_0_80px_rgba(59,130,246,0.2)]",
+    " border-gray-300  hover:ring-2 hover:ring-gray-300 hover:shadow-[0_0_50px_rgba(168,85,247,0.3),0_0_80px_rgba(59,130,246,0.2)]",
   RightPannelBG: {
     backgroundColor: "#0a0b0d",
     backgroundImage:

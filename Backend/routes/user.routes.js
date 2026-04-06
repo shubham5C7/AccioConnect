@@ -8,6 +8,6 @@ const userRouter = express.Router()
 userRouter.get('/profile',authorize,profile)
 
 // update user profile
-userRouter.patch("/update",authorize,updateUserProfile);
+userRouter.patch("/updateprofile",authorize,updateUserProfile);
 
 module.exports = userRouter;

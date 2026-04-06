@@ -16,7 +16,8 @@ const userSchema = new mongoose.Schema(
       unique: true,
     },
     profilePicture:{
-      type : String  // url
+      type : String , // url
+       default: null // S3 key will be stored here
     },
     phoneNumber: {
       type: Number,
@@ -31,7 +32,7 @@ const userSchema = new mongoose.Schema(
         required : true
     },
     isInstructor : {
-        type : Boolean,
+        type: Boolean, 
         required : true
     },
     centerLocation : {

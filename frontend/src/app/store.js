@@ -8,7 +8,7 @@ import postReducer from '../features/postsSlice'
 export const store = configureStore({
   reducer:{
      theme: themeReducer,
-      user: userReducer, 
+       auth: userReducer,
       posts : postReducer,
   }
 })

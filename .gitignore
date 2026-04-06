@@ -1,7 +1,8 @@
 # Environment files
 .env
-Backend/.env
+backend/.env
 
+backend/logs
 # Node modules
 node_modules/
 
@@ -11,3 +12,6 @@ node_modules/
 # Build folders
 dist/
 build/
+
+backend/Logs/
+*.log

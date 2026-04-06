@@ -1,127 +1,168 @@
-  import axios from 'axios'
-  import {createAsyncThunk, createSlice} from '@reduxjs/toolkit'
+import axios from "axios";
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 
-  const API ="http://localhost:3000/posts"; 
+const API = "http://localhost:3000/posts";
 
-  // Fetch a API for getting all posts
-  export const fetchAllPosts = createAsyncThunk("posts/allPosts",
-    async(_, {rejectWithValue})=>{
-      try{
-        const response = await axios.get(`${API}/allposts`,{
-          withCredentials:true// Send to Cookies 
-        })
-        return response.data.data;
-      }catch(err){
-         console.error('API Error:', err);
-        return rejectWithValue(err.response?.data?.message || "Failed to fetch posts");
-      }
+// Fetch a API for getting all posts
+export const fetchAllPosts = createAsyncThunk(
+  "posts/allPosts",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await axios.get(`${API}/allposts`, {
+        withCredentials: true, // Send to Cookies
+      });
+      return response.data.data;
+    } catch (err) {
+      console.error("API Error:", err);
+      return rejectWithValue(
+        err.response?.data?.message || "Failed to fetch posts",
+      );
     }
-  )
+  },
+);
 
-  // Fetch an API for Create Post
-  export const createPost = createAsyncThunk("posts/createPost",
-    async(postData,{rejectWithValue})=>{
-       try{
-        const payload = {
+export const fetchUserPosts = createAsyncThunk(
+  "posts/fetchUserPosts", 
+  async (userId, { rejectWithValue }) => {
+    try {
+      const res = await axios.get(`${API}/post/${userId}`, { withCredentials: true });
+      console.log("API response:", res.data); // debug
+      return res.data.data; 
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Failed to fetch posts");
+    }
+  }
+);
+
+// Referal Posts
+// export const getReferralPosts = createAsyncThunk(
+//     ""
+// )
+
+// Fetch an API for Create Post
+export const createPost = createAsyncThunk(
+  "posts/createPost",
+  async (postData, { rejectWithValue }) => {
+    try {
+      const payload = {
         content: postData.content.trim(),
         caption: postData.caption.trim() || "",
         type: postData.type || "general-post",
         contentType: postData.contentType || "text",
         isCommentDisable: !postData.commentsEnabled,
         isLikeDisable: !postData.likesEnabled,
-        };
-        console.log("Payload being sent to backend:", payload); // ADD THIS
-        const response = await axios.post(`${API}/createpost`,payload,{withCredentials:true});
-          console.log(" Backend response:", response.data); // ADD THIS
-         // Handle different response structures
-      return response.data.data;  ;
-       }catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Failed to create post");
+      };
+      console.log("Payload being sent to backend:", payload); // ADD THIS
+      const response = await axios.post(`${API}/createpost`, payload, {
+        withCredentials: true,
+      });
+      console.log(" Backend response:", response.data); // ADD THIS
+      // Handle different response structures
+      return response.data.data;
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data?.message || "Failed to create post",
+      );
     }
-    }
-  )
+  },
+);
 
-  // Fetch Api for the toggle the LIkes and UnLikes
-  export const toggleLikes = createAsyncThunk("posts/toggleLikes",
-    async({postId, userId, userName, profilePicture},{rejectWithValue})=>{
-      try{
-        const response = await axios.patch(`${API}/likes/${postId}`,{
+// Fetch Api for the toggle the LIkes and UnLikes
+export const toggleLikes = createAsyncThunk(
+  "posts/toggleLikes",
+  async ({ postId, userId, userName, profilePicture }, { rejectWithValue }) => {
+    try {
+      const response = await axios.patch(
+        `${API}/likes/${postId}`,
+        {
           userId,
           userName,
-           profilePicture
-        },{
-        withCredentials:true
-        })
-              console.log("Like response received:", response.data);
+          profilePicture,
+        },
+        {
+          withCredentials: true,
+        },
+      );
+      console.log("Like response received:", response.data);
       return response.data.data;
-      }catch(err){
-              console.error("Like API error:", err.response?.data); 
-        return rejectWithValue(err.response?.data?.message ||  "Failed to toggle like");
-      }
+    } catch (err) {
+      console.error("Like API error:", err.response?.data);
+      return rejectWithValue(
+        err.response?.data?.message || "Failed to toggle like",
+      );
     }
-  )
+  },
+);
 
-  // Fetch API fpr the add Commments
-  export const addComments = createAsyncThunk("posts/addComments",
-    async({postId,commentText},{rejectWithValue})=>{
-      try{
-        const response = await axios.patch(`${API}/comments/${postId}`,
-          { text: commentText }, // Send comment data
-          {withCredentials:true})
-        return response.data.data;
-      }catch(err){
-        return rejectWithValue(err.response?.data?.message ||"Failed to add comment");
-      }
+// Fetch API fpr the add Commments
+export const addComments = createAsyncThunk(
+  "posts/addComments",
+  async ({ postId, commentText, userId, userName, profilePicture}, { rejectWithValue }) => {
+    try {
+      const response = await axios.patch(
+        `${API}/comments/${postId}`,
+       { comment: commentText , userId, userName, profilePicture} ,
+        { withCredentials: true },
+      );
+      return response.data.data;
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data?.message || "Failed to add comment",
+      );
     }
-  )
+  },
+);
 
-  // Fetch API for the Delete the post
-  export const deletePost = createAsyncThunk("posts/deletePost",
-    async({postId},{rejectWithValue})=>{
-      console.log("Thunk called with postId:", postId);
-      try{
-        const response = await axios.delete(`${API}/deletePost/${postId}`,{
-        withCredentials:true
-        })
-         console.log("Delete API response:", response.data); 
-          return postId; // Return postId for filtering
-      }catch(err){
-          console.error("Delete API error:", err.response?.data || err);
-              return rejectWithValue(err.response?.data?.message || "Failed to delete post");
-      }
+// Fetch API for the Delete the post
+export const deletePost = createAsyncThunk(
+  "posts/deletePost",
+  async ({ postId }, { rejectWithValue }) => {
+    console.log("Thunk called with postId:", postId);
+    try {
+      const response = await axios.delete(`${API}/deletePost/${postId}`, {
+        withCredentials: true,
+      });
+      console.log("Delete API response:", response.data);
+      return postId; // Return postId for filtering
+    } catch (err) {
+      console.error("Delete API error:", err.response?.data || err);
+      return rejectWithValue(
+        err.response?.data?.message || "Failed to delete post",
+      );
     }
-  )
+  },
+);
 
 // Fetch API for the Profile of the user
 export const profilePost = createAsyncThunk(
   "user/profile",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get(
-        "http://localhost:3000/user/profile",
-        { withCredentials: true }
-      );
+      const response = await axios.get("http://localhost:3000/user/profile", {
+        withCredentials: true,
+      });
 
       console.log(response.data.data, "profile");
       return response.data.data;
     } catch (err) {
       return rejectWithValue(
-        err.response?.data?.message || "Failed to fetch user profile"
+        err.response?.data?.message || "Failed to fetch user profile",
       );
     }
-  }
+  },
 );
 
-  const postsSlice = createSlice({
+const postsSlice = createSlice({
   name: "posts",
   initialState: {
     posts: [],
-     user: null,      
+    user: null,
+    userPosts: [],
     loading: false,
     error: null,
     createLoading: false,
     createError: null,
-     likesLoading: {},
+    likesLoading: {},
     commentsLoading: false,
   },
 
@@ -133,25 +174,24 @@ export const profilePost = createAsyncThunk(
     clearCreateError: (state) => {
       state.createError = null;
     },
-    optimisticLikeToggle:(state,action) => {
-      const {postId,userId} = action.payload;
+    optimisticLikeToggle: (state, action) => {
+      const { postId, userId } = action.payload;
 
-      const post = state.posts.find((p)=>p._id === postId);
-      if(!post) return;
+      const post = state.posts.find((p) => p._id === postId);
+      if (!post) return;
 
-        if (!post.likes) {
+      if (!post.likes) {
         post.likes = [];
-         }
-
+      }
 
       const alreadyLiked = post.likes?.some((like) => like.userId === userId);
 
-      if(alreadyLiked){
+      if (alreadyLiked) {
         post.likes = post.likes.filter((like) => like.userId !== userId);
-      }else{
-        post.likes.push({userId});
+      } else {
+        post.likes.push({ userId });
       }
-    }
+    },
   },
 
   extraReducers: (builder) => {
@@ -163,9 +203,23 @@ export const profilePost = createAsyncThunk(
       })
       .addCase(fetchAllPosts.fulfilled, (state, action) => {
         state.loading = false;
-         state.posts = action.payload || [];
+        state.posts = action.payload || [];
       })
       .addCase(fetchAllPosts.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      /* FETCH POST BY USER ID*/
+      .addCase(fetchUserPosts.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchUserPosts.fulfilled, (state, action) => {
+        state.loading = false;
+        state.userPosts = action.payload || [];
+      })
+      .addCase(fetchUserPosts.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
@@ -189,20 +243,20 @@ export const profilePost = createAsyncThunk(
         const postId = action.meta.arg.postId;
         state.likesLoading[postId] = true;
       })
-    .addCase(toggleLikes.fulfilled, (state, action) => {
-      const postId = action.payload._id;
-      state.likesLoading[postId] = false;
-      const index = state.posts.findIndex((p) => p._id === postId);
+      .addCase(toggleLikes.fulfilled, (state, action) => {
+        const postId = action.payload._id;
+        state.likesLoading[postId] = false;
+        const index = state.posts.findIndex((p) => p._id === postId);
 
-      if (index !== -1) {
-        state.posts[index] = action.payload;
-      }
-    })
-    .addCase(toggleLikes.rejected, (state, action) => {
-      const postId = action.meta.arg.postId;
-      state.likesLoading[postId] = false;
-      state.error = action.payload;
-    })
+        if (index !== -1) {
+          state.posts[index] = action.payload;
+        }
+      })
+      .addCase(toggleLikes.rejected, (state, action) => {
+        const postId = action.meta.arg.postId;
+        state.likesLoading[postId] = false;
+        state.error = action.payload;
+      })
 
       /*  ADD COMMENT  */
       .addCase(addComments.pending, (state) => {
@@ -211,7 +265,7 @@ export const profilePost = createAsyncThunk(
       .addCase(addComments.fulfilled, (state, action) => {
         state.commentsLoading = false;
         state.posts = state.posts.map((post) =>
-          post._id === action.payload._id ? action.payload : post
+          post._id === action.payload._id ? action.payload : post,
         );
       })
       .addCase(addComments.rejected, (state, action) => {
@@ -225,9 +279,7 @@ export const profilePost = createAsyncThunk(
       })
       .addCase(deletePost.fulfilled, (state, action) => {
         state.loading = false;
-        state.posts = state.posts.filter(
-          (post) => post._id !== action.payload
-        );
+        state.posts = state.posts.filter((post) => post._id !== action.payload);
       })
       .addCase(deletePost.rejected, (state, action) => {
         state.loading = false;
@@ -235,9 +287,9 @@ export const profilePost = createAsyncThunk(
       })
 
       // Profile user
-      .addCase(profilePost.pending,(state)=>{
-        state.loading=true;
-         state.error = null;
+      .addCase(profilePost.pending, (state) => {
+        state.loading = true;
+        state.error = null;
       })
       .addCase(profilePost.fulfilled, (state, action) => {
         state.loading = false;
@@ -245,10 +297,11 @@ export const profilePost = createAsyncThunk(
       })
       .addCase(profilePost.rejected, (state, action) => {
         state.loading = false;
-       state.error = action.payload;
+        state.error = action.payload;
       });
   },
 });
 
-export const { addPosts, clearCreateError, optimisticLikeToggle } = postsSlice.actions;
+export const { addPosts, clearCreateError, optimisticLikeToggle } =
+  postsSlice.actions;
 export default postsSlice.reducer;

@@ -1,25 +1,25 @@
 const mongoose = require('mongoose')
-const { profile } = require('../controllers/user.controller')
 
 const postSchema = new mongoose.Schema({
  user:{
    type: mongoose.Schema.Types.ObjectId,  
     ref: "User",
-    required : true
+    required : true,
  },
  contentType : {
     type : String, // image,video,blog
     required : true
  },
+
  content : {
        type : String,
-    required : true 
+       required : true 
  },
  caption:{
     type : String,
  },
  type:{
-       type : String, // Rteferal-post or general post
+       type : String, // Referal-post or general post
     required : true
  },
  isLikeDisable : {

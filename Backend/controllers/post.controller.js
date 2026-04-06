@@ -13,50 +13,31 @@ const createPost = async (req, res, next) => {
       message: "User not authenticated",
     });
   }
-
   //  Get post data from body
   const {
-    images,
-     content,
+    content,
+    contentType,
     caption,
     type,
     isLikeDisable = false,
     isCommentDisable = false,
   } = req.body;
- // Validations
- if(!images || !Array.isArray(images) ||images.length === 0){
-  return res.err(400,"AtLeast one image is required")
- }
 
- if(!type){
-  return res.err(400,"Post type is required")
- }
-
- // Validate each image object
- for(let img of images){
-  if(!img.contentType || !img.mimeType || !img.key){
-    return res.err(400,"Each image mush have contentType,mimeType and key")
+  // Basic validations
+  if ( !contentType || !content ||!type) {
+    return res.err(400, "Required field is missing");
   }
- }
-
-
   try {
     // Check if user exists
     const userExists = await User.findById(userId);
     if (!userExists) {
       return res.err(404, "User not found");
     }
-
     // create a new post
-    const newPost = await Post.create({
+    let newPost = await Post.create({
       user: userId,
-      images:images.map(img=>({
-        contentType:img.contentType,
-        mimeType:img.mimeType,
-        key:img.key,
-        uploadedAt:new Date()
-      })),
-       content,
+      content,
+      contentType,
       caption: caption || "",
       type,
       isLikeDisable,
@@ -68,6 +49,9 @@ const createPost = async (req, res, next) => {
     if (!newPost) {
       return res.err(500, "Post creation failed");
     }
+
+    //Populate te user field sending responce
+    newPost = await newPost.populate("user", "firstName lastName profilePicture");
 
     //  Send response
     if (newPost) {
@@ -84,7 +68,7 @@ const getAllPost = async (req, res, next) => {
     console.log(" Fetching all posts...");
 
     const allPosts = await Post.find()
-      .populate("user", "firstName lastName profilePicture ")
+      .populate("user", "firstName lastName profilePicture")
       .sort({ createdAt: -1 });
 
     console.log(" Posts fetched:", allPosts.length);
@@ -104,10 +88,11 @@ const getAllPost = async (req, res, next) => {
 
 //create api to get all posts from given postId
 const getPostsByUserId = async (req, res, next) => {
-  const {userId }= req.params;
+  const { userId } = req.params;
   try {
-    // Find the user By postId
-    const posts = await Post.find({ user: userId}).sort({createdAt : -1}).populate({"user":"firstName lastName profilePicture"});
+    const posts = await Post.find({ user: userId })
+      .sort({ createdAt: -1 })
+      .populate("user", "firstName lastName profilePicture"); 
 
     if (!posts || posts.length === 0) {
       return res.err(404, "No posts found for this user");
@@ -189,7 +174,6 @@ const UpdateLikes = async (req, res, next) => {
   }
 };
 
-
 // Updates the Comments
 const UpdateComments = async (req, res, next) => {
   try {
@@ -236,7 +220,6 @@ const UpdateComments = async (req, res, next) => {
     next(err);
   }
 };
-
 
 // Crete api for Edit the Comment
 const EditComment = async(req,res,next) =>{
@@ -351,7 +334,11 @@ const DeletePost = async (req, res, next) => {
   try {
 
     const postId = req.params.postId;
-    const userId = req.user.id; // Get from authenticated user via middleware
+    const userId = req.user?.id; // Get from authenticated user via middleware
+
+  if(!userId){
+    return res.err(401,"User not authenticated");
+  }
 
     // Find the post by Id
     const post = await Post.findById(postId);
@@ -453,8 +440,6 @@ module.exports = {
   DeletePost,
   UpdatePost,
 };
-
-
 
 /*
 

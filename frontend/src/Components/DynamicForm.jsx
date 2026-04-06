@@ -3,7 +3,7 @@ import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { getInitialState, handleFeildChange } from "../constants";
 
-const DynamicForm = ({ schema, onSubmit,isSubmitting=false }) => {
+const DynamicForm = ({ schema, onSubmit, isSubmitting = false }) => {
   const navigate = useNavigate();
   const isDark = useSelector((state) => state.theme.isDark);
 
@@ -24,46 +24,46 @@ const DynamicForm = ({ schema, onSubmit,isSubmitting=false }) => {
   };
 
   // Submit
-const handleSubmit = async(e) => {
-  e.preventDefault(); 
-  // Required validation
-  for (let field of schema.fields) {
-    if (field.required && shouldShowField(field) && !formData[field.name]) {
-      setError(`${field.label} is required`);
-      return;
-    }
-  }
-  // Password match validation
-  if (
-    formData.password &&
-    formData.confirmPassword &&
-    formData.password !== formData.confirmPassword
-  ) {
-    setError("Passwords do not match");
-    return;
-  }
-  setError("");
-  // Build FormData
-  const formDataToSend = new FormData();
-  
-  schema.fields.forEach((field) => {
-    if (!field.uiOnly && shouldShowField(field)) {
-      const value = formData[field.name];
-      // Only append if value exists
-      if (value !== undefined && value !== null && value !== "") {
-        console.log(`Appending ${field.name}:`, value);
-        formDataToSend.append(field.name, value);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    // Required validation
+    for (let field of schema.fields) {
+      if (field.required && shouldShowField(field) && !formData[field.name]) {
+        setError(`${field.label} is required`);
+        return;
       }
     }
-  });
-  // Debug: Log all FormData entries
-  console.log("FormData to send:");
-  for (let [key, value] of formDataToSend.entries()) {
-    console.log(`  ${key}:`, value);
-  }
-  
-  await onSubmit(formDataToSend);
-};
+    // Password match validation
+    if (
+      formData.password &&
+      formData.confirmPassword &&
+      formData.password !== formData.confirmPassword
+    ) {
+      setError("Passwords do not match");
+      return;
+    }
+    setError("");
+    // Build FormData
+    const formDataToSend = new FormData();
+
+    schema.fields.forEach((field) => {
+      if (!field.uiOnly && shouldShowField(field)) {
+        const value = formData[field.name];
+        // Only append if value exists
+        if (value !== undefined && value !== null && value !== "") {
+          console.log(`Appending ${field.name}:`, value);
+          formDataToSend.append(field.name, value);
+        }
+      }
+    });
+    // Debug: Log all FormData entries
+    console.log("FormData to send:");
+    for (let [key, value] of formDataToSend.entries()) {
+      console.log(`  ${key}:`, value);
+    }
+
+    await onSubmit(formDataToSend);
+  };
 
   return (
     <div className="flex justify-center w-full">
@@ -150,8 +150,12 @@ const handleSubmit = async(e) => {
                         accept="image/*"
                         onChange={(e) => handleChange(e, field)}
                         className={`w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:cursor-pointer ${
-                          isDark? "file:bg-blue-600 file:text-white hover:file:bg-blue-700"  : "file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"}`}/>
-                        {fileName && (
+                          isDark
+                            ? "file:bg-blue-600 file:text-white hover:file:bg-blue-700"
+                            : "file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                        }`}
+                      />
+                      {fileName && (
                         <p className="text-xs text-gray-500 mt-1">
                           Selected: {fileName}
                         </p>
@@ -196,19 +200,32 @@ const handleSubmit = async(e) => {
           {/* Submit button */}
           <button
             type="submit"
-            disabled={isSubmitting}  // Disable during submission
-            className={`w-full  py-2 rounded-lg font-medium transition mb-3 ${isSubmitting ? "bg-gray-400 cursor-not-allowed text-gray-600" : "bg-blue-600 hover:bg-blue-700 text-white"}`}>
+            disabled={isSubmitting} // Disable during submission
+            className={`w-full  py-2 rounded-lg font-medium transition mb-3 ${isSubmitting ? "bg-gray-400 cursor-not-allowed text-gray-600" : "bg-blue-600 hover:bg-blue-700 text-white"}`}
+          >
             {isSubmitting ? (
-                          <span className="flex items-center justify-center gap-2">
-              <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              Submitting...
-            </span>
-            ): (
-            'Submit'
-          )}
+              <span className="flex items-center justify-center gap-2">
+                <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                    fill="none"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+                Submitting...
+              </span>
+            ) : (
+              "Submit"
+            )}
           </button>
 
           {/* Toggle route */}
@@ -217,7 +234,8 @@ const handleSubmit = async(e) => {
               {schema.toggleText || "Already have an account?"}{" "}
               <span
                 className={`hover:text-blue-500 cursor-pointer font-medium ${isDark ? "text-white" : "text-blue-600"}`}
-                onClick={() => navigate(schema.toggleRoute)}>
+                onClick={() => navigate(schema.toggleRoute)}
+              >
                 {schema.toggleLinkText}
               </span>
             </p>

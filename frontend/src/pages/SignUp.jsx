@@ -1,87 +1,91 @@
 import DynamicForm from "../Components/DynamicForm";
-import { useSelector } from "react-redux";
-import axios from "axios";
+import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { Toaster, toast } from "sonner";
-import {IMAGES,getToastOptions,SCHEMAS} from '../constants'
+import { IMAGES, getToastOptions, SCHEMAS } from '../constants';
 import { useState } from "react";
 import uploadToS3 from "../utils/uploadToS3";
+import { signUpUser } from "../features/userSlice";
 
 const SignUp = () => {
   const isDark = useSelector((state) => state.theme.isDark);
+  const dispatch = useDispatch();
   const navigate = useNavigate();
-  const [imgLoading,setImgLoading] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false); // Avoide double subitting(double click protection)
+  const [imgLoading, setImgLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-const handleSignUp = async (formData) => {
+  const handleSignUp = async (formData) => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
 
-  if (isSubmitting) return;
-  setIsSubmitting(true);
+    // Single toast ID covers the entire flow: loading → success/error
+    toast.loading("Creating your account...", { id: "signup" });
 
-  try {
+    try {
+      const profilePictureFile = formData.get("profilePicture");
 
-    const profilePictureFile = formData.get("profilePicture");
+      // Safe conversion — handles multi-value keys (checkboxes, multi-selects)
+      const dataToSend = {};
+      formData.forEach((value, key) => {
+        if (key === "profilePicture") return;
+        dataToSend[key] = dataToSend[key]
+          ? [].concat(dataToSend[key], value)
+          : value;
+      });
 
-    // Convert early
-    const dataToSend = Object.fromEntries(formData.entries());
-    delete dataToSend.profilePicture;
+      // Upload profile picture if provided
+      if (profilePictureFile instanceof File) {
+        const uploadedImage = await uploadToS3(profilePictureFile);
 
-    // Upload if file exists
-    if (profilePictureFile instanceof File) {
+        // Guard against unexpected S3 response shape
+        if (!uploadedImage?.permanentUrl || !uploadedImage?.key) {
+          throw new Error("Image upload returned an invalid response");
+        }
 
-      toast.loading("Uploading profile picture...", { id: "upload" });
+        dataToSend.profilePicture = uploadedImage.permanentUrl;
+        dataToSend.profilePictureKey = uploadedImage.key;
+      }
 
-      const uploadedImage = await uploadToS3(profilePictureFile);
+      // Use Redux thunk instead of raw axios — keeps state.auth.loading in sync
+      const result = await dispatch(signUpUser(dataToSend));
 
-      toast.success("Profile picture uploaded!", { id: "upload" });
-      dataToSend.profilePicture = uploadedImage.permanentUrl;
-      dataToSend.profilePictureKey = uploadedImage.key;
+      if (signUpUser.fulfilled.match(result)) {
+        toast.success("Account created! Redirecting...", { id: "signup" });
+        setTimeout(() => navigate("/signIn"), 1000);
+      } else {
+        throw new Error(result.payload || "Signup failed");
+      }
+
+    } catch (err) {
+      toast.error(err.message || "Signup failed", { id: "signup" });
+    } finally {
+      setIsSubmitting(false);
     }
-
-    // Send signup request
-    const response = await axios.post(
-       "http://localhost:3000/auth/signUp",
-      dataToSend,
-      { withCredentials: true }
-    );
-
-    if (response.data.success) {
-      toast.success("Account created! Redirecting...");
-      setTimeout(() => navigate("/signIn"), 1000);
-    }
-
-  } catch (err) {
-
-    toast.error(
-      err.response?.data?.message ||
-      err.message ||
-      "Signup failed"
-    );
-
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+  };
 
   return (
-    <div className={`min-h-screen mt-10 flex items-center justify-center px-4 relative  ${isDark ? "bg-gray-800 text-white": "bg-white text-gray-900" }`}>
-      {/* Add Toaster component */}
-      <Toaster 
-        theme={isDark ? 'dark' : 'light'}position="top-center" toastOptions={getToastOptions(isDark)}/>
-         <div className='hidden lg:block absolute top-15 left-35 '>
-          {imgLoading && (
-            <div className="w-12 h-12 border-4 border-gray-300 border-t-blue-600 rounded-full animate-spin absolute top-1/2 left-40"></div>
-          )}
-        <img 
-          src={isDark ? IMAGES.signup.dark  : IMAGES.signup.light}
+    <div className={`min-h-screen mt-10 flex items-center justify-center px-4 relative ${isDark ? "bg-gray-800 text-white" : "bg-white text-gray-900"}`}>
+      <Toaster
+        theme={isDark ? 'dark' : 'light'}
+        position="top-center"
+        toastOptions={getToastOptions(isDark)}
+      />
+
+      <div className='hidden lg:block absolute top-15 left-35'>
+        {imgLoading && (
+          <div className="w-12 h-12 border-4 border-gray-300 border-t-blue-600 rounded-full animate-spin absolute top-1/2 left-40"></div>
+        )}
+        <img
+          src={isDark ? IMAGES.signup.dark : IMAGES.signup.light}
           alt="Sign Up Illustration"
-          loading="lazy" // defer loading
-          decoding="async" // non-blocking decode
-          onLoad={()=>setImgLoading(false)}
+          loading="lazy"
+          decoding="async"
+          onLoad={() => setImgLoading(false)}
           onError={(e) => (e.currentTarget.src = "/image-fallback.png")}
-          className={`w-130 h-130  object-cover transition-opacity duration-500 ${imgLoading ? "opacity-0":"opacity-100"}`}
+          className={`w-130 h-130 object-cover transition-opacity duration-500 ${imgLoading ? "opacity-0" : "opacity-100"}`}
         />
       </div>
+
       <div className="w-full max-w-lg lg:absolute lg:right-35">
         <DynamicForm
           schema={SCHEMAS.SIGN_UP}
@@ -92,4 +96,5 @@ const handleSignUp = async (formData) => {
     </div>
   );
 };
+
 export default SignUp;

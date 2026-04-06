@@ -2,7 +2,7 @@
   "name": "nodejs",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "user.js",
   "scripts": {
     "start": "nodemon user.js",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -24,6 +24,7 @@
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.0.0",
     "multer": "^2.0.2",
-    "nodemon": "^3.1.11"
+    "nodemon": "^3.1.11",
+    "ua-parser-js": "^2.0.9"
   }
 }

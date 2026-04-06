@@ -1,23 +1,22 @@
 import { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate, Link } from 'react-router-dom'
-import axios from 'axios';
 import { Toaster, toast } from 'sonner'
-import { setUser } from '../features/userSlice'; 
+import { signInUser} from '../features/userSlice'; 
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import {IMAGES,getToastOptions} from '../constants'
 import {saveUserToStorage} from '../utils/storage'
 
 const SignIn = () => {
-  const [showPasswod,setShowPassword]=useState(false);
-  const isDark = useSelector((state) => state.theme.isDark)
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const isDark = useSelector((state) => state.theme.isDark)
+  const isLoading = useSelector((state) => state.auth.loading);
+  const [showPasswod,setShowPassword]=useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: ''
   });
-  const [isLoading, setIsLoading] = useState(false);
   const [imgLoading,setImgLoading]=useState(true);
 
   const handleChange = (e) => {
@@ -27,44 +26,44 @@ const SignIn = () => {
     }));
   };
 
-  const handleSignIn = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-    try {
-      const response = await axios.post(
-        "http://localhost:3000/auth/signIn",
-        formData, {withCredentials: true, }
-      );
+const handleSignIn = async (e) => {
+  e.preventDefault();
 
-      if (response.data?.success) {
-        // Save user to Redux
-       const userData = response.data.data.user; 
-        console.log("User Data received:", userData);
-        dispatch(setUser(userData));
-        console.log("User Data received:", userData);
+  //  Get location first, then dispatch
+  const submit = async (lat = null, lng = null) => {
+    const result = await dispatch(signInUser({ ...formData, lat, lng }));
 
-        // Sav ethe data in localStorage
-        saveUserToStorage(userData)
-        // Show success toast
-        toast.success('Welcome back! Signed in successfully!');
-        // Navigate after a brief moment
-        setTimeout(() => navigate("/"), 800);
-      } else {
-        // Show error toast
-        toast.error("Sign in failed ! Try Again");
-      }
-    } catch (error) {
-      console.error(error);
-      // Show error toast for network/server errors
-      toast.error(
-        error.response?.data?.message || 
-        error.message || 
-        "An error occurred during sign in"
-      );
-    } finally {
-      setIsLoading(false);
+    if (signInUser.fulfilled.match(result)) {
+      const user = result.payload;
+      saveUserToStorage(user);
+
+      toast.success("Welcome Back!", {
+        description: "You've successfully signed in.",
+        duration: 5000,
+        icon: "👋",
+        style: { borderRadius: "12px", padding: "16px", fontWeight: "600" },
+      });
+      setTimeout(() => navigate("/"), 800);
+    } else {
+      toast.error(result.payload || "Sign In Failed", {
+        description: "Please check your credentials and try again.",
+        duration: 6000,
+        icon: "🔐",
+        style: { borderRadius: "12px", padding: "16px", fontWeight: "600" },
+      });
     }
   };
+
+  //  Try to get GPS coords, fallback silently if denied/unsupported
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      (pos) => submit(pos.coords.latitude, pos.coords.longitude),
+      () => submit() // denied or error — login still works
+    );
+  } else {
+    submit(); // browser doesn't support geolocation
+  }
+};
 
   return (
     <div className={`min-h-screen relative flex items-start lg:block overflow-hidden ${isDark? "bg-gray-800  text-white ring-1 ring-gray-100/10": "bg-white text-gray-900 ring-1 ring-gray-900/5" }`}>
@@ -74,7 +73,7 @@ const SignIn = () => {
         position="top-center"
         toastOptions={getToastOptions(isDark)}
       />
-      <div className="w-full max-w-md mx-auto px-4 pt-3 lg:absolute lg:top-30 lg:left-55">
+<div className="w-full max-w-md mx-auto px-4 pt-17  lg:absolute lg:top-1/2 lg:-translate-y-1/2 lg:left-[10%]">
         <div className={`p-8 rounded-2xl shadow-3xl ${isDark ? "bg-gray-800 text-white ring-1 ring-gray-700 shadow-[0_20px_50px_rgba(0,0,0,0.7)]": "bg-white text-gray-900 ring-1 ring-gray-200 shadow-[0_20px_40px_rgba(0,0,0,0.15)]"  }`}>
           <h2 className="text-2xl font-bold mb-6 text-center">Sign In</h2>
           <form onSubmit={handleSignIn} className="space-y-4">
@@ -109,7 +108,7 @@ const SignIn = () => {
                 type='button'
                 onClick={() => setShowPassword(prev => !prev)}
                 className={`absolute right-3 bottom-2 ${isDark ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700' }`}>
-                {showPasswod ? <FaEye size={20} /> : <FaEyeSlash size={20} />}
+                {showPasswod ?  <FaEyeSlash size={20}/> : <FaEye size={20} /> }
               </button>
             </div>
             {/* Forgot Password Link */}
@@ -141,7 +140,7 @@ const SignIn = () => {
         </div>
       </div>
 
-      <div className='hidden lg:block absolute top-18 right-38'>
+   <div className='hidden lg:block absolute top-1/2 -translate-y-1/2 right-[10%] pt-10'>
        {imgLoading && (
         <div className="w-12 h-12 border-4 border-gray-300 border-t-blue-600 rounded-full animate-spin absolute top-50 left-40"></div>
        )}
